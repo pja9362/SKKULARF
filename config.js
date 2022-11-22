@@ -1,0 +1,1 @@
+export const BASE_URL = 'http://13.125.186.247:8000/common/users/';
