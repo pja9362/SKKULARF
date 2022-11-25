@@ -9,13 +9,13 @@ import { FlatList } from 'react-native-gesture-handler';
 // import { LikeContext } from '../context/LikeContext';
 import Icon from 'react-native-vector-icons/AntDesign';
 
-const Search = ({ navigation }) => {
-
+const Fav = ({ navigation }) => {
+    console.log("FAV PAGE!!!!!!!!!!!!!");
     // const {addFav} = useContext(LikeContext);
-    const [favorite, setFavorite] = useState();
+   const [favorite, setFavorite] = useState();
 
     const [heart, setHeart] = useState([]);
-    const [favNotice, setFavNotice] = useState([]);
+    const [heartNotices, setHeartNotices] = useState([{}]);
 
     const [text, setText] = useState("");
     const [notices, setNotices] =  useState([{}]);
@@ -40,30 +40,41 @@ const Search = ({ navigation }) => {
         // console.log(value.parse.username);
         }
     }
-    // getData();
+    // const displayFav = () => {
+    //     fetch('http://13.125.186.247:8000/scholar')
+    //     .then((res)=> res.json())
+    //     .then((resData)=> {
+    //         console.log("displayFavorite!!!!!!!!!!!!!=>"+JSON.stringify(resData));
+
+    //     })
+    // }
+       
     
 
     useEffect(() => {
-        fetch(`http://13.125.186.247:8000/api/scholar`)
-        .then((res)=>res.json())
-        .then((noticeArray)=> {
+        fetch('http://13.125.186.247:8000/scholar')
+        .then((res)=> res.json())
+        .then((resData)=> {
+            console.log("displayFavorite!!!!!!!!!!!!!=>"+JSON.stringify(resData));
+
             getData();
-            setNotices(noticeArray);
+            // getHeart();
+            setNotices(resData);
             // console.log(noticeArray)
-            const searchNotices = noticeArray.map((notices) => {
+            console.log("noticeArray=>"+resData);
+            const searchNotices = resData.map((notices) => {
                 return notices.title;
             })
-            const searchItems = noticeArray.map((notices) => {
+            const searchItems = resData.map((notices) => {
                 return notices;
             })
-            const initHeart = noticeArray.map((notices) => {
-                return false;
-            })
+
             //console.log(searchNotices);
             setSearchNotices(searchNotices);
             setSearchItems(searchItems);
-            setHeart(initHeart);
-            console.log(Object.keys(notices));
+            console.log("notice들의 key?????=>"+Object.keys(notices));
+
+
         })
       }, [])
 
@@ -71,7 +82,8 @@ const Search = ({ navigation }) => {
     
     ///// fav 
     const addFav = async(key) => {
-
+        // getHeart();
+        console.log("favorite??=>"+favorite);
         // displayFav(key, favorite);
         let tmp = 0;
         console.log("clicked key=> "+key);
@@ -103,16 +115,8 @@ const Search = ({ navigation }) => {
                 // else  alert('아이디 혹은 비밀번호를 확인해주세요!');
                 // setHeart(!heart);
                 heart[key] = !(heart[key]);
-                console.log("cur heart => "+heart[key]);
-                console.log("cur key?=> "+key);
-                console.log("cur heart list? => "+ heart);
-                AsyncStorage.setItem(
-                    // 'username', username
-                    'fav', JSON.stringify({
-                        // token: token,
-                        'favNotice': heart,
-                    })
-                )
+                console.log("HEART cur heart => "+heart[key]);
+                console.log("FAVORITE cur heart => "+favorite[key]);
             })
     
             
@@ -142,7 +146,7 @@ const Search = ({ navigation }) => {
         alert('filter clicked');
     }
     const searchList = async () => {
-        navigation.navigate('Fav');
+        alert('filter clicked');
     }
 
     const onChangeText = (payload) => {
@@ -174,58 +178,45 @@ const Search = ({ navigation }) => {
             </View>
             <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollContent}>
             {
+                Object.keys(notices) != "" ? 
                 Object.keys(notices).map(key => 
-                    text !== "" ? 
-                        notices[key].title.includes(text) ? 
-                        <View style = {styles.content} key={key}>
-                            <Text style = {{...styles.contentText, fontSize: 14, textAlign: 'center', backgroundColor: 'green', width: '30%', marginBottom: 5, padding: 3}} >{notices[key].department}</Text>
-                            <Text style = {styles.contentText} >{notices[key].title}</Text>
-                            <Text style = {{...styles.contentText, marginBottom: 10, color: 'grey'}} >{notices[key].date}</Text>                
-                            <Pressable id = "like" onPress={()=>addFav(key)}><AntDesign name="heart" size={20} color="grey" /></Pressable>
-                        </View>
-                        : null
-                    : <View style = {styles.content} key={key}>
-                        {/* <Pressable onPress={()=>addFav(key)} style={{padding:5}}>
-                            {heart[key]?<Icon name="heart" size={20} color={'red'}></Icon>:<Icon name="heart" size={20} color={'white'}></Icon>}
-                        </Pressable> */}
+                    (text !== "" )? 
+                            notices[key].title.includes(text) ? 
+                            <View style = {styles.content} key={key}>
+                                <Text style = {{...styles.contentText, fontSize: 14, textAlign: 'center', backgroundColor: 'green', width: '30%', marginBottom: 5, padding: 3}} >{notices[key].department}</Text>
+                                <Text style = {styles.contentText} >{notices[key].title}</Text>
+                                <Text style = {{...styles.contentText, marginBottom: 10, color: 'grey'}} >{notices[key].date}</Text>                
+                                <Pressable id = "like" onPress={()=>addFav(key)}><AntDesign name="heart" size={20} color="grey" /></Pressable>
+                            </View>
+                            : null
                         
-                        
-                        <TouchableOpacity
-                                key={key}
-                                onPress={()=>addFav(key)}
-                                style={{padding:5}}
-                            >
-                            {heart[key]?
-                            <Icon name="hearto" size={20} color={'#3D3D3D'}></Icon>
-                            :<Icon name="heart" size={20} color={'#595959'}></Icon>
-                            }
-                        </TouchableOpacity>
-                        
-                        <Text style = {{...styles.contentText, fontSize: 14, textAlign: 'center', backgroundColor: 'green', width: '30%', marginBottom: 5, padding: 3}} >{notices[key].department}</Text>
-                        <Text style = {styles.contentText} >{notices[key].title}</Text>
-                        <Text style = {{...styles.contentText, marginBottom: 10, color: 'grey'}} >{notices[key].date}</Text>                
-    
-                        {/* <View key={key}>      
-                        {/* {
-                              (favorite)?
-                              <View>
-                                <AntDesign name="heart" size={30} color="#eb4b4b" />
-                              </View>
-                            
-                             :
-                             <View>
-                             <AntDesign name="hearto" size={30} color="#999" />
-                             </View>
-                            } */}
-                            {/* <HeartButton like={favorite} onPress={()=>addFav(key)}></HeartButton> */}
-                    
+                    // : (favorite[key] == "true")?
+                    :
+                       <View style = {styles.content} key={key}>
+                            {/* <Pressable onPress={()=>addFav(key)} style={{padding:5}}>
+                                {heart[key]?<Icon name="heart" size={20} color={'red'}></Icon>:<Icon name="heart" size={20} color={'white'}></Icon>}
+                            </Pressable> */}
+                            <TouchableOpacity
+                                    key={key}
+                                    onPress={()=>addFav(key)}
+                                    style={{padding:5}}
+                                >
+                                {heart[key]?
+                                <Icon name="hearto" size={20} color={'#3D3D3D'}></Icon>
+                                :<Icon name="heart" size={20} color={'#595959'}></Icon>
+                                }
+                            </TouchableOpacity>
+                                
+                                <Text style = {{...styles.contentText, fontSize: 14, textAlign: 'center', backgroundColor: 'green', width: '30%', marginBottom: 5, padding: 3}} >{notices[key].department}</Text>
+                                <Text style = {styles.contentText} >{notices[key].title}</Text>
+                                <Text style = {{...styles.contentText, marginBottom: 10, color: 'grey'}} >{notices[key].date}</Text>                
 
-                        {/* <View>
-                            <Button title="Button" onPress={() => addFav(key)}/>        
-                        </View>                  */}
-
-                    </View>
+                            </View>
+                            // : null
                     )
+                : <View >
+                    <Text style = {styles.emptyText}> {"관심 장학이 없습니다."}</Text>
+                </View>
                 }
             </ScrollView>
  
@@ -288,8 +279,14 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         paddingHorizontal: 20,
         paddingVertical: 3
+    },
+    emptyText: {
+        fontSize: 30,
+        fontWeight: '600',
+        textAlign: 'center',
+        marginTop: 180,
     }
 
 })
 
-export default Search;
+export default Fav;
