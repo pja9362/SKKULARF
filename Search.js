@@ -64,6 +64,8 @@ const Search = ({ navigation }) => {
             setSearchItems(searchItems);
             setHeart(initHeart);
             console.log(Object.keys(notices));
+            console.log("notice들의 key?????=>"+Object.keys(notices));
+
         })
       }, [])
 

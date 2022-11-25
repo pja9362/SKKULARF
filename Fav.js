@@ -12,7 +12,7 @@ import Icon from 'react-native-vector-icons/AntDesign';
 const Fav = ({ navigation }) => {
     console.log("FAV PAGE!!!!!!!!!!!!!");
     // const {addFav} = useContext(LikeContext);
-   const [favorite, setFavorite] = useState();
+    const [favorite, setFavorite] = useState();
 
     const [heart, setHeart] = useState([]);
     const [heartNotices, setHeartNotices] = useState([{}]);
@@ -40,15 +40,6 @@ const Fav = ({ navigation }) => {
         // console.log(value.parse.username);
         }
     }
-    // const displayFav = () => {
-    //     fetch('http://13.125.186.247:8000/scholar')
-    //     .then((res)=> res.json())
-    //     .then((resData)=> {
-    //         console.log("displayFavorite!!!!!!!!!!!!!=>"+JSON.stringify(resData));
-
-    //     })
-    // }
-       
     
 
     useEffect(() => {
@@ -74,14 +65,13 @@ const Fav = ({ navigation }) => {
             setSearchItems(searchItems);
             console.log("notice들의 key?????=>"+Object.keys(notices));
 
-
         })
-      }, [])
+      },[])
 
-
+    // notices
     
     ///// fav 
-    const addFav = async(key) => {
+    const deleteFav = async(key) => {
         // getHeart();
         console.log("favorite??=>"+favorite);
         // displayFav(key, favorite);
@@ -93,14 +83,14 @@ const Fav = ({ navigation }) => {
         console.log("username: "+ username+ "userId: " + id + " key: "+ tmp);
         // POST
         await fetch('http://13.125.186.247:8000/scholar', {
-            method: 'POST',
+            method: 'DELETE',
             headers: {
                 'Accept': 'application/json',
                 'Content-type': "application/json"
             },
             body: JSON.stringify({
-                'user': id,
-                'product_option': tmp
+                'user': 97,
+                'product_option': 33
                 // 'token': token,
             })
             })
@@ -108,7 +98,7 @@ const Fav = ({ navigation }) => {
             .then(resData=> {
                 // $("#like AntDesign").css('color', 'red');
             
-                console.log(resData);
+                console.log("삭제 성공!!!!!!!!!=>"+resData);
                 // console.log("res.json()=>"+res.json());
                 console.log("resData Here!!=>"+JSON.stringify(resData));
                 // rconsole.log("resJson=>"+res.json());
@@ -116,7 +106,7 @@ const Fav = ({ navigation }) => {
                 // setHeart(!heart);
                 heart[key] = !(heart[key]);
                 console.log("HEART cur heart => "+heart[key]);
-                console.log("FAVORITE cur heart => "+favorite[key]);
+                // console.log("FAVORITE cur heart => "+favorite[key]);
             })
     
             
@@ -186,20 +176,21 @@ const Fav = ({ navigation }) => {
                                 <Text style = {{...styles.contentText, fontSize: 14, textAlign: 'center', backgroundColor: 'green', width: '30%', marginBottom: 5, padding: 3}} >{notices[key].department}</Text>
                                 <Text style = {styles.contentText} >{notices[key].title}</Text>
                                 <Text style = {{...styles.contentText, marginBottom: 10, color: 'grey'}} >{notices[key].date}</Text>                
-                                <Pressable id = "like" onPress={()=>addFav(key)}><AntDesign name="heart" size={20} color="grey" /></Pressable>
+                                <Pressable id = "like" onPress={()=>deleteFav(key)}><AntDesign name="heart" size={20} color="grey" /></Pressable>
                             </View>
                             : null
                         
                     // : (favorite[key] == "true")?
-                    :
-                       <View style = {styles.content} key={key}>
+                    // :( heart[key] == "true") ?
+                    :   <View style = {styles.content} key={key}>
                             {/* <Pressable onPress={()=>addFav(key)} style={{padding:5}}>
                                 {heart[key]?<Icon name="heart" size={20} color={'red'}></Icon>:<Icon name="heart" size={20} color={'white'}></Icon>}
                             </Pressable> */}
                             <TouchableOpacity
                                     key={key}
-                                    onPress={()=>addFav(key)}
+                                    onPress={()=>deleteFav(key)}
                                     style={{padding:5}}
+                                    
                                 >
                                 {heart[key]?
                                 <Icon name="hearto" size={20} color={'#3D3D3D'}></Icon>
@@ -212,7 +203,7 @@ const Fav = ({ navigation }) => {
                                 <Text style = {{...styles.contentText, marginBottom: 10, color: 'grey'}} >{notices[key].date}</Text>                
 
                             </View>
-                            // : null
+                            
                     )
                 : <View >
                     <Text style = {styles.emptyText}> {"관심 장학이 없습니다."}</Text>
