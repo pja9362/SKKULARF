@@ -8,7 +8,6 @@ import { Button, View, StyleSheet, Text, TextInput, TouchableOpacity,ScrollView,
 import { FlatList } from 'react-native-gesture-handler';
 // import { LikeContext } from '../context/LikeContext';
 import Icon from 'react-native-vector-icons/AntDesign';
-
 // Push Notification
 // import { StyleSheet, Text, View, Button } from 'react-native';
 import * as Notifications from 'expo-notifications';
@@ -21,14 +20,14 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
-/////////
-const Search = ({ navigation }) => {
-
+//////////
+const Fav = ({ navigation }) => {
+    // console.log("FAV PAGE!!!!!!!!!!!!!");
     // const {addFav} = useContext(LikeContext);
     const [favorite, setFavorite] = useState();
-
+    const [number, setNumber] =useState(0); 
     const [heart, setHeart] = useState([]);
-    const [favNotice, setFavNotice] = useState([]);
+    const [heartNotices, setHeartNotices] = useState([{}]);
 
     const [text, setText] = useState("");
     const [notices, setNotices] =  useState([{}]);
@@ -36,11 +35,13 @@ const Search = ({ navigation }) => {
     const [searchNotices, setSearchNotices] = useState([]);
     // const [contents, setContents] = useState({});
     const [searchItems, setSearchItems] = useState([]);
+    const [searchKey, setSearchKey] = useState([]);
     const [username, setUsername] = useState("");
     const [noticeId, setNoticeId] = useState("");
     const [id, setId] = useState("");
     // const [token, setToken] = useState("");
-    const [searchKey, setSearchKey] = useState([]);
+    const [length, setLength] = useState("");
+    const [searchKey2, setSearchKey2] = useState([]);
 
     const getData = async () => {
         const value = await AsyncStorage.getItem('userData');
@@ -50,126 +51,109 @@ const Search = ({ navigation }) => {
             // console.log(JSON.parse(value).token);
         setUsername(JSON.parse(value).username);
         setId(JSON.parse(value).id);
+        // setToken(JSON.parse(value).token);
+        // console.log(value.parse.username);
         }
-
-        // const value2 = await AsyncStorage.getItem('favData');
-        // if(value2 !== null) {
-        //     console.log("THIS IS VALUE2=>"+JSON.parse(value2).favKey);
-        // }      
-        // console.log("LENGTH!?!?!?!?!=>"+JSON.parse(value2).favKey.length);
-
-    }
-    
-
+    }  
     useEffect(() => {
-        fetch(`http://13.125.186.247:8000/api/bert`)
-        .then((res)=>res.json())
-        .then((noticeArray)=> {
+        fetch('http://13.125.186.247:8000/favorscholar/')
+        .then((res)=> res.json())
+        .then((resData)=> {
+            console.log("RESDATA HERE!!!!!!!!!!!"+resData);
+            // console.log("displayFavorite!!!!!!!!!!!!!=>"+JSON.stringify(resData));
             getData();
-            setNotices(noticeArray);
-            // console.log(noticeArray)
-            const searchNotices = noticeArray.map((notices) => {
+            
+            setNotices(resData);
+            // // console.log(noticeArray)
+            // // console.log("noticeArray=>"+resData);
+            const searchNotices = resData.map((notices) => {
                 return notices.title;
             })
-            const searchItems = noticeArray.map((notices) => {
+            const searchItems = resData.map((notices) => {
                 return notices;
             })
-            const searchKey = noticeArray.map((notices) => {
-                // console.log("!!!!!!!!!!!!!!!search key id ㅊㅜㄹ려ㄱ"+notices.id);
+            const searchKey = resData.map((notices) => {
+                // console.log("search key id ㅊㅜㄹ려ㄱ"+notices.id);
+                searchKey2.push(notices.id);
                 return notices.id;
             })
-
-            const initHeart = noticeArray.map((notices) => {
-                return false;
-            })
-            //console.log(searchNotices);
+            
+            // // console.log('전체 개수? -> '+ searchKey.length);
+            // // console.log('KEY2!!!!!! -> '+ searchKey2);
+            // setLength(searchKey.length);
+            // //console.log(searchNotices);
+            // // console.log("길이가 얼마니? :" + length);
             setSearchNotices(searchNotices);
             setSearchItems(searchItems);
-            setHeart(initHeart);
             setSearchKey(searchKey);
+            // console.log("!!!!!!!!!!!!!AFTER => "+ searchKey.length); // 업데이트 되기 전 data 값 출력
 
-            // console.log(Object.keys(notices));
-            // console.log("notice들의 key?????=>"+Object.keys(notices));
-
+            // // console.log("First search item => "+ searchNotices);
+            // AsyncStorage.setItem(
+            //     'favData', JSON.stringify({
+            //         'favKey': searchKey,
+            //     })
+            // )
         })
-    }, [])
+      },[])
 
-    const moveDetail = async(key) => {
-        // console.log("clicked key? : "+ key);
-        // console.log("어디 페이지로 이동? : " + searchKey[key]);
-        // console.log("해당 페이지 제목? : " + searchNotices[key]);
-        console.log("전체 공고? : "+ JSON.stringify(searchItems[key]));
-        // console.log("소득분위? : "+ searchItems[key].con_income);
-        AsyncStorage.setItem(
-            // 'username', username
-            'clickedItem', JSON.stringify({
-                // token: token,
-                'title': searchNotices[key],
-                'age' : searchItems[key].con_age,
-                'bef_score' : searchItems[key].con_bef_score,
-                'total_score' : searchItems[key].con_total_score,
-                'income' : searchItems[key].con_income,
-                'major' : searchItems[key].con_major,
-                'where' : searchItems[key].con_where
-            })
-        )
-        navigation.navigate('Details');
-    }
-    
+    // notices
     ///// fav 
-    const addFav = async(key) => {
-
-        // displayFav(key, favorite);
-        let tmp = 0;
-        console.log("clicked key=> "+key);
-        // setId(key);
-
-        console.log( "userId: " + id + "product - option: "+ key);
-        // POST
-        await fetch('http://13.125.186.247:8000/favorscholar/', {
-            method: 'POST',
+    const deleteFav = async(key) => {
+        // getHeart();
+        console.log("current Key=>"+key);
+        console.log("username => "+id);
+        console.log("userId: " + id + " key: "+ key);
+        // await fetch(`http://13.125.186.247:8000/scholar/${key}`, {
+        //     method: 'DELETE',
+        await fetch(`http://13.125.186.247:8000/scholar`, {
+            method: 'DELETE', 
             headers: {
                 'Accept': 'application/json',
-                'Content-type': "application/json"
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 'user': id,
                 'product_option': key
-                // 'token': token,
             })
-            })
-            .then(res => res.json())
-            .then(resData=> {
-                // $("#like AntDesign").css('color', 'red');
+        })
+        .then(response => {
+            return response.json( )
+        })
+        .then(data => 
+            // this is the data we get after putting our data, do whatever you want with this data
+            console.log(data) 
+        );
+     
+       // now do whatever you want with the data  
+        // // POST
+        // await fetch(`http://13.125.186.247:8000/scholar`, {
+        //     method: 'DELETE',
+        //     headers: {
+        //         'Accept': 'application/json',
+        //         'Content-type': "application/json"
+        //     },
+        //     body: JSON.stringify({
+        //         'user': id,
+        //         'product_option': key
+        //         // 'token': token,
+        //     })
+        //     })
+        //     .then(res => res.json())
+        //     .then(resData=> {
+        //         // $("#like AntDesign").css('color', 'red');
             
-                console.log(resData);
-                // console.log("res.json()=>"+res.json());
-                console.log("resData Here!!=>"+JSON.stringify(resData));
-
-                AsyncStorage.setItem(
-                    // 'username', username
-                    'fav', JSON.stringify({
-                        // token: token,
-                        'favNotice': heart,
-                    })
-                )
-                // PUSH NOTIFICATION
-                Notifications.scheduleNotificationAsync({
-                    content: {
-                      title: "NEW 관심장학!",
-                      body: '관심장학이 새롭게 업데이트 되었습니다. 확인해보세요!',
-                    },
-                    trigger: {
-                      seconds: 3, //onPress가 클릭이 되면 60초 뒤에 알람이 발생합니다.
-                    },
-                  });
-                
-            })
+        //         console.log("삭제 성공!!!!!!!!!=>"+resData);
+        //         // console.log("res.json()=>"+res.json());
+        //         console.log("resData Here!!=>"+JSON.stringify(resData));
+        //     })
     
             
     }
+    
     /////// fav 
 
+  
     const items = searchNotices;
     const list = searchItems;
 
@@ -192,7 +176,7 @@ const Search = ({ navigation }) => {
         alert('filter clicked');
     }
     const searchList = async () => {
-        navigation.navigate('Fav');
+        alert('filter clicked');
     }
 
     const onChangeText = (payload) => {
@@ -203,16 +187,10 @@ const Search = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <View style={styles.filter}>
-                    <TouchableOpacity 
-                        style={styles.dateBox}>
-
-                        <Text style={styles.dateBoxText}>마감 장학 가리기</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.filterBox} onPress={()=> navigation.navigate('Bert')}>
-                        <Text style={styles.filterBoxText}>지원 가능 장학만 보기</Text>
-                    </TouchableOpacity>
-                </View>
+                <Text style={styles.title}>내 관심장학</Text>
+                {/* <TouchableOpacity onPress={showFilter}>          
+                    <Text style={styles.filter}>Filter</Text>
+                </TouchableOpacity> */}
             </View>
             <View style={styles.form}>
                 <View style={styles.searchBar}>
@@ -223,59 +201,62 @@ const Search = ({ navigation }) => {
                             returnKeyType = "done"
                             value={text}
                         />
-                    {/* <TouchableOpacity onPress={searchList}>          
+                    <TouchableOpacity onPress={searchList}>          
                         <Text style={styles.searchBtn}>Search</Text>
-                    </TouchableOpacity> */}
+                    </TouchableOpacity>
                     </View>
             </View>
-
-
             <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollContent}>
-                {
+            {
+                Object.keys(notices) != "" ? 
                 Object.keys(notices).map(key => 
-                    text !== "" ? 
-                        notices[key].title.includes(text) ? 
-                        <TouchableOpacity style = {styles.content} key={key} onPress={()=> moveDetail(key)}>
+                    (text !== "" )? 
+                            notices[key].title.includes(text) ? 
+                            <TouchableOpacity style = {styles.content} key={key} onPress={()=>navigation.navigate('Details')}>
+                                <View style={styles.box}>
+                                    <Text style={styles.dDay}>
+                                        D-2
+                                    </Text>
+                                    <Text style = {styles.deparmentInfo} >{notices[key].department}</Text>
+                                    <Pressable style={styles.favBtn} id = "like" onPress={()=>deleteFav(key)}><AntDesign name="heart" size={20} color="grey" /></Pressable>
+                                </View>
+                                
+                                <Text style = {styles.scholarTitle} >{notices[key].title}</Text>
+                                <Text style = {styles.dateInfo} >{notices[key].date}</Text>                
+                                
+                            </TouchableOpacity>
+                            : null
+                        
+                    // : (favorite[key] == "true")?
+                    // :( heart[key] == "true") ?
+                    :   <TouchableOpacity style = {styles.content} key={key} onPress={()=>navigation.navigate('Details')}>
+                            {/* <Pressable onPress={()=>addFav(key)} style={{padding:5}}>
+                                {heart[key]?<Icon name="heart" size={20} color={'red'}></Icon>:<Icon name="heart" size={20} color={'white'}></Icon>}
+                            </Pressable> */}
                             <View style={styles.box}>
                                 <Text style={styles.dDay}>
                                     D-2
                                 </Text>
                                 <Text style = {styles.departmentInfo} >{notices[key].department}</Text>
-                                <Pressable style={styles.favBtn} id = "like" onPress={()=>addFav(searchKey[key])}><AntDesign name="heart" size={20} color="grey" /></Pressable>
-                            </View>
-                            <Text style = {styles.scholarTitle} >{notices[key].title}</Text>
-                            <Text style = {styles.dateInfo} >{notices[key].date}</Text>                
-                        </TouchableOpacity>
-                        : null
-
-
-                    : <TouchableOpacity style = {styles.content} key={key} onPress={()=> moveDetail(key)}>
-                        {/* <Pressable onPress={()=>addFav(key)} style={{padding:5}}>
-                            {heart[key]?<Icon name="heart" size={20} color={'red'}></Icon>:<Icon name="heart" size={20} color={'white'}></Icon>}
-                        </Pressable> */}
-                        <View style={styles.box} >
-                            <Text style={styles.dDay}>
-                                D-2
-                            </Text>
-                            <Text style = {styles.departmentInfo} >{notices[key].department}</Text>
-                            {/* 관심장학 버튼 */}
-                            <TouchableOpacity
-                                key={key}
-                                onPress={()=>addFav(searchKey[key])}
-                                style={styles.favBtn}
+                                <TouchableOpacity
+                                    key={key}
+                                    onPress={()=>deleteFav(searchKey[key])}
+                                    style={styles.favBtn}
                                 >
                                 {heart[key]?
                                 <Icon name="hearto" size={20} color={'#3D3D3D'}></Icon>
                                 :<Icon name="heart" size={20} color={'#595959'}></Icon>
                                 }
                             </TouchableOpacity>
-                        </View>
-                        
-                        <Text style = {styles.scholarTitle} >{notices[key].title}</Text>
-                        <Text style = {styles.dateInfo} >{notices[key].date}</Text>                
-
-                    </TouchableOpacity>
+                            </View>
+                                <Text style = {styles.scholarTitle} >{notices[key].title}</Text>
+                                <Text style = {styles.dateInfo} >{notices[key].date}</Text>                
+                        </TouchableOpacity>
+                            
                     )
+                : <View >
+                    <Text style = {styles.emptyText}> {"관심 장학이 없습니다."}</Text>
+                </View>
                 }
             </ScrollView>
         </View>
@@ -290,45 +271,10 @@ const styles = StyleSheet.create({
     },
     header: {
         paddingVertical: 10,
-        flexDirection:'row'
     },
     title: {
         fontSize: 20,
         fontWeight: '600',
-    },
-    filter:{
-        flexDirection:'row',
-        width:'85%',
-    },
-    dateBox:{
-        flex:1,
-        width:150,
-        borderColor:'#3A7525',
-        borderWidth:2,
-        marginRight:5,
-        borderRadius:10,
-        height:30,
-    },
-    dateBoxText:{
-        textAlign:'center',
-        fontWeight:'bold',
-        paddingTop:3
-    },
-    filterBox:{
-        flex:1,
-        width:130,
-        textAlign:'center',
-        borderColor:'#3A7525',
-        borderWidth:2,
-        marginLeft:5,
-        borderRadius:10,
-        height:30,
-
-    },
-    filterBoxText:{
-        textAlign:'center',
-        fontWeight:'bold',
-        paddingTop:3
     },
 
     form: {
@@ -351,7 +297,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     input: {
-        width: '90%',
+        width: '75%',
         fontSize: 17,
         marginVertical: 10,
         paddingVertical: 5,
@@ -431,11 +377,10 @@ const styles = StyleSheet.create({
         textAlign:'right',
         marginRight:10,
         color:'grey',
-        marginTop:3,
         marginBottom:5
     }
 
 
 })
 
-export default Search;
+export default Fav;

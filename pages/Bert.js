@@ -8,7 +8,6 @@ import { Button, View, StyleSheet, Text, TextInput, TouchableOpacity,ScrollView,
 import { FlatList } from 'react-native-gesture-handler';
 // import { LikeContext } from '../context/LikeContext';
 import Icon from 'react-native-vector-icons/AntDesign';
-
 // Push Notification
 // import { StyleSheet, Text, View, Button } from 'react-native';
 import * as Notifications from 'expo-notifications';
@@ -21,9 +20,9 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
-/////////
-const Search = ({ navigation }) => {
-
+//////////
+const Bert = ({ navigation }) => {
+   
     // const {addFav} = useContext(LikeContext);
     const [favorite, setFavorite] = useState();
 
@@ -36,11 +35,11 @@ const Search = ({ navigation }) => {
     const [searchNotices, setSearchNotices] = useState([]);
     // const [contents, setContents] = useState({});
     const [searchItems, setSearchItems] = useState([]);
+    const [searchKey, setSearchKey] = useState([]);
     const [username, setUsername] = useState("");
     const [noticeId, setNoticeId] = useState("");
     const [id, setId] = useState("");
     // const [token, setToken] = useState("");
-    const [searchKey, setSearchKey] = useState([]);
 
     const getData = async () => {
         const value = await AsyncStorage.getItem('userData');
@@ -50,51 +49,44 @@ const Search = ({ navigation }) => {
             // console.log(JSON.parse(value).token);
         setUsername(JSON.parse(value).username);
         setId(JSON.parse(value).id);
+        // setToken(JSON.parse(value).token);
+        // console.log(value.parse.username);
         }
-
-        // const value2 = await AsyncStorage.getItem('favData');
-        // if(value2 !== null) {
-        //     console.log("THIS IS VALUE2=>"+JSON.parse(value2).favKey);
-        // }      
-        // console.log("LENGTH!?!?!?!?!=>"+JSON.parse(value2).favKey.length);
-
     }
-    
+    // getData();
+
 
     useEffect(() => {
-        fetch(`http://13.125.186.247:8000/api/bert`)
+        console.log("여기 주목!");
+        fetch(`http://13.125.186.247:8000/api/bertcmp`)
         .then((res)=>res.json())
         .then((noticeArray)=> {
             getData();
-            setNotices(noticeArray);
-            // console.log(noticeArray)
-            const searchNotices = noticeArray.map((notices) => {
+            setNotices(noticeArray.data);
+
+            // console.log("여기봐!!!!!!!!"+JSON.stringify(noticeArray.data));
+
+            const searchNotices = noticeArray.data.map((notices) => {
                 return notices.title;
             })
-            const searchItems = noticeArray.map((notices) => {
+            const searchItems = noticeArray.data.map((notices) => {
                 return notices;
             })
-            const searchKey = noticeArray.map((notices) => {
-                // console.log("!!!!!!!!!!!!!!!search key id ㅊㅜㄹ려ㄱ"+notices.id);
+            const searchKey = noticeArray.data.map((notices) => {
+                console.log("Key?????????????//=> "+notices.id);
                 return notices.id;
-            })
-
-            const initHeart = noticeArray.map((notices) => {
-                return false;
             })
             //console.log(searchNotices);
             setSearchNotices(searchNotices);
             setSearchItems(searchItems);
-            setHeart(initHeart);
             setSearchKey(searchKey);
-
-            // console.log(Object.keys(notices));
-            // console.log("notice들의 key?????=>"+Object.keys(notices));
+            
+            console.log("notice들의 개수 ? =>"+ searchKey.length);
 
         })
-    }, [])
+      }, [])
 
-    const moveDetail = async(key) => {
+      const moveDetail = async(key) => {
         // console.log("clicked key? : "+ key);
         // console.log("어디 페이지로 이동? : " + searchKey[key]);
         // console.log("해당 페이지 제목? : " + searchNotices[key]);
@@ -115,6 +107,7 @@ const Search = ({ navigation }) => {
         )
         navigation.navigate('Details');
     }
+
     
     ///// fav 
     const addFav = async(key) => {
@@ -140,12 +133,7 @@ const Search = ({ navigation }) => {
             })
             .then(res => res.json())
             .then(resData=> {
-                // $("#like AntDesign").css('color', 'red');
-            
                 console.log(resData);
-                // console.log("res.json()=>"+res.json());
-                console.log("resData Here!!=>"+JSON.stringify(resData));
-
                 AsyncStorage.setItem(
                     // 'username', username
                     'fav', JSON.stringify({
@@ -170,6 +158,7 @@ const Search = ({ navigation }) => {
     }
     /////// fav 
 
+  
     const items = searchNotices;
     const list = searchItems;
 
@@ -177,15 +166,6 @@ const Search = ({ navigation }) => {
         return item.includes(text);
     })
 
-    const renderItem = notices.map((notices) => {
-        return (
-            <View>
-                <Text>department : {notices.department}</Text>
-                <Text>title : {notices.title}</Text>
-                <Text>date : {notices.date}</Text>
-            </View>
-        )
-    })
 
 
     const showFilter = async () => {
@@ -203,16 +183,10 @@ const Search = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <View style={styles.filter}>
-                    <TouchableOpacity 
-                        style={styles.dateBox}>
-
-                        <Text style={styles.dateBoxText}>마감 장학 가리기</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.filterBox} onPress={()=> navigation.navigate('Bert')}>
-                        <Text style={styles.filterBoxText}>지원 가능 장학만 보기</Text>
-                    </TouchableOpacity>
-                </View>
+                <Text style={styles.title}>장학공고 검색</Text>
+                {/* <TouchableOpacity onPress={showFilter}>          
+                    <Text style={styles.filter}>Filter</Text>
+                </TouchableOpacity> */}
             </View>
             <View style={styles.form}>
                 <View style={styles.searchBar}>
@@ -223,13 +197,11 @@ const Search = ({ navigation }) => {
                             returnKeyType = "done"
                             value={text}
                         />
-                    {/* <TouchableOpacity onPress={searchList}>          
-                        <Text style={styles.searchBtn}>Search</Text>
-                    </TouchableOpacity> */}
+                    <TouchableOpacity onPress={searchList}>          
+                        <Text style={styles.searchBtn}>검색 🔍</Text>
+                    </TouchableOpacity>
                     </View>
             </View>
-
-
             <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollContent}>
                 {
                 Object.keys(notices).map(key => 
@@ -278,6 +250,8 @@ const Search = ({ navigation }) => {
                     )
                 }
             </ScrollView>
+ 
+   
         </View>
     )
 }
@@ -438,4 +412,4 @@ const styles = StyleSheet.create({
 
 })
 
-export default Search;
+export default Bert;
