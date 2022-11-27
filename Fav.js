@@ -56,29 +56,16 @@ const Fav = ({ navigation }) => {
         }
     }  
     useEffect(() => {
-
-        // Notifications.scheduleNotificationAsync({
-        //     content: {
-        //       title: "NEW 맞춤장학!",
-        //       body: '학우분의 조건에 맞는 장학 게시글이 새롭게 업로드 되었습니다. 확인해보세요!',
-        //     },
-        //     trigger: {
-        //       seconds: 3, //onPress가 클릭이 되면 60초 뒤에 알람이 발생합니다.
-        //     },
-        //   });
-        // const tmpKey = [... searchKey];
-        // console.log("temp Key!?!!?!?!?!?=>"+tmpKey.length);
-        // console.log("!!!!!!!!!!!!!MID => "+ searchKey.length); // 업데이트 되기 전 data 값 출력
-
-        fetch('http://13.125.186.247:8000/scholar')
+        fetch('http://13.125.186.247:8000/favorscholar/')
         .then((res)=> res.json())
         .then((resData)=> {
+            console.log("RESDATA HERE!!!!!!!!!!!"+resData);
             // console.log("displayFavorite!!!!!!!!!!!!!=>"+JSON.stringify(resData));
             getData();
             
             setNotices(resData);
-            // console.log(noticeArray)
-            // console.log("noticeArray=>"+resData);
+            // // console.log(noticeArray)
+            // // console.log("noticeArray=>"+resData);
             const searchNotices = resData.map((notices) => {
                 return notices.title;
             })
@@ -91,39 +78,45 @@ const Fav = ({ navigation }) => {
                 return notices.id;
             })
             
-            // console.log('전체 개수? -> '+ searchKey.length);
-            // console.log('KEY2!!!!!! -> '+ searchKey2);
-            setLength(searchKey.length);
-            //console.log(searchNotices);
-            // console.log("길이가 얼마니? :" + length);
+            // // console.log('전체 개수? -> '+ searchKey.length);
+            // // console.log('KEY2!!!!!! -> '+ searchKey2);
+            // setLength(searchKey.length);
+            // //console.log(searchNotices);
+            // // console.log("길이가 얼마니? :" + length);
             setSearchNotices(searchNotices);
             setSearchItems(searchItems);
             setSearchKey(searchKey);
-            console.log("!!!!!!!!!!!!!AFTER => "+ searchKey.length); // 업데이트 되기 전 data 값 출력
+            // console.log("!!!!!!!!!!!!!AFTER => "+ searchKey.length); // 업데이트 되기 전 data 값 출력
 
-            // console.log("First search item => "+ searchNotices);
-            AsyncStorage.setItem(
-                'favData', JSON.stringify({
-                    'favKey': searchKey,
-                })
-            )
+            // // console.log("First search item => "+ searchNotices);
+            // AsyncStorage.setItem(
+            //     'favData', JSON.stringify({
+            //         'favKey': searchKey,
+            //     })
+            // )
         })
-        return () => {
-            // 업데이트 되기 전에 출력
-            console.log("맞춤장학 출력!!!!!!!!!!!!!!!!!"); // 업데이트 되기 전 data 값 출력
-            // console.log("First search item => "+ searchNotices);
-            Notifications.scheduleNotificationAsync({
-                content: {
-                  title: "NEW 맞춤장학!",
-                  body: '학우분의 조건에 맞는 장학 게시글이 새롭게 업로드 되었습니다. 확인해보세요!',
-                },
-                trigger: {
-                  seconds: 4, //onPress가 클릭이 되면 60초 뒤에 알람이 발생합니다.
-                },
-              });
-        }
-      },[searchKey.length])
-
+      },[])
+      const moveDetail = async(key) => {
+        // console.log("clicked key? : "+ key);
+        // console.log("어디 페이지로 이동? : " + searchKey[key]);
+        // console.log("해당 페이지 제목? : " + searchNotices[key]);
+        console.log("전체 공고? : "+ JSON.stringify(searchItems[key]));
+        // console.log("소득분위? : "+ searchItems[key].con_income);
+        AsyncStorage.setItem(
+            // 'username', username
+            'clickedItem', JSON.stringify({
+                // token: token,
+                'title': searchNotices[key],
+                'age' : searchItems[key].con_age,
+                'bef_score' : searchItems[key].con_bef_score,
+                'total_score' : searchItems[key].con_total_score,
+                'income' : searchItems[key].con_income,
+                'major' : searchItems[key].con_major,
+                'where' : searchItems[key].con_where
+            })
+        )
+        navigation.navigate('Details');
+    }
     // notices
     ///// fav 
     const deleteFav = async(key) => {
@@ -239,7 +232,7 @@ const Fav = ({ navigation }) => {
                 Object.keys(notices).map(key => 
                     (text !== "" )? 
                             notices[key].title.includes(text) ? 
-                            <TouchableOpacity style = {styles.content} key={key} onPress={()=>navigation.navigate('Details')}>
+                            <TouchableOpacity style = {styles.content} key={key} onPress={()=>moveDetail(key)}>
                                 <View style={styles.box}>
                                     <Text style={styles.dDay}>
                                         D-2
@@ -256,7 +249,7 @@ const Fav = ({ navigation }) => {
                         
                     // : (favorite[key] == "true")?
                     // :( heart[key] == "true") ?
-                    :   <TouchableOpacity style = {styles.content} key={key} onPress={()=>navigation.navigate('Details')}>
+                    :   <TouchableOpacity style = {styles.content} key={key} onPress={()=>moveDetail(key)}>
                             {/* <Pressable onPress={()=>addFav(key)} style={{padding:5}}>
                                 {heart[key]?<Icon name="heart" size={20} color={'red'}></Icon>:<Icon name="heart" size={20} color={'white'}></Icon>}
                             </Pressable> */}
