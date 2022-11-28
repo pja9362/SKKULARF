@@ -1,9 +1,9 @@
 import { AntDesign } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
-import { useEffect, useState, Component } from 'react';
+import { useRef, useEffect, useState, Component } from 'react';
 // import {HeartOutlined, HeartFilled} from '@ant-design/icons';	
-import { Button, View, StyleSheet, Text, TextInput, TouchableOpacity,ScrollView, TouchableHighlight, Pressable } from 'react-native';
+import { AppState, Button, View, StyleSheet, Text, TextInput, TouchableOpacity,ScrollView, TouchableHighlight, Pressable } from 'react-native';
 // import { Button } from 'react-native-elements';
 import { FlatList } from 'react-native-gesture-handler';
 // import { LikeContext } from '../context/LikeContext';
@@ -20,16 +20,15 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
+//////////
 
-let before = 0;
-/////////
-const Search2 = ({ navigation }) => {
-
+const Fav2 = ({ navigation }) => {
+    // console.log("FAV PAGE!!!!!!!!!!!!!");
     // const {addFav} = useContext(LikeContext);
     const [favorite, setFavorite] = useState();
-    const [tmp, setTmp] = useState("");
+    const [number, setNumber] =useState(0); 
     const [heart, setHeart] = useState([]);
-    const [favNotice, setFavNotice] = useState([]);
+    const [heartNotices, setHeartNotices] = useState([{}]);
 
     const [text, setText] = useState("");
     const [notices, setNotices] =  useState([{}]);
@@ -37,11 +36,14 @@ const Search2 = ({ navigation }) => {
     const [searchNotices, setSearchNotices] = useState([]);
     // const [contents, setContents] = useState({});
     const [searchItems, setSearchItems] = useState([]);
+    const [searchKey, setSearchKey] = useState([]);
     const [username, setUsername] = useState("");
     const [noticeId, setNoticeId] = useState("");
     const [id, setId] = useState("");
-    const [searchKey, setSearchKey] = useState([]);
-
+    // const [token, setToken] = useState("");
+    const [length, setLength] = useState("");
+    const [searchKey2, setSearchKey2] = useState([]);
+    const [tmp, setTmp] = useState("");
     const getData = async () => {
         const value = await AsyncStorage.getItem('userData');
         if (value !== null) {
@@ -50,41 +52,48 @@ const Search2 = ({ navigation }) => {
             // console.log(JSON.parse(value).token);
         setUsername(JSON.parse(value).username);
         setId(JSON.parse(value).id);
+
         }
-    }
-
+    }  
+    const appState = useRef(AppState.currentState);
+    const [appStateVisible, setAppStateVisible] = useState(appState.current);
+    const [state, setState] = useState({ data: null, error: false, loading: true })
     useEffect(() => {
-        fetch(`http://13.125.186.247:8000/api/bert`)
-        .then((res)=>res.json())
-        .then((noticeArray)=> {
-            getData();
-            setNotices(noticeArray);
-            // console.log(noticeArray)
-            const searchNotices = noticeArray.map((notices) => {
-                return notices.title;
-            })
-            const searchItems = noticeArray.map((notices) => {
-                return notices;
-            })
-            const searchKey = noticeArray.map((notices) => {
-                // console.log("!!!!!!!!!!!!!!!search key id ㅊㅜㄹ려ㄱ"+notices.id);
-                return notices.id;
-            })
+        setState(state => ({ data: state.data, error: false, loading: true }))
+        const intervalDelete = setInterval(()=> {
+            fetch('http://13.125.186.247:8000/favorscholar/')
+            .then((res)=> res.json())
+            .then((resData)=> {
+                getData();
+                console.log("current state! => "+AppState.currentState);
+                setNotices(resData);
+                const searchNotices = resData.map((notices) => {
+                    return notices.title;
+                })
+                const searchItems = resData.map((notices) => {
+                    return notices;
+                })
+                const searchKey = resData.map((notices) => {
+                    // console.log("search key id ㅊㅜㄹ려ㄱ"+notices.id);
+                    searchKey2.push(notices.id);
+                    return notices.id;
+                })
+                
+              
+                setTmp(searchKey.length);
+    
+                setSearchNotices(searchNotices);
+                setSearchItems(searchItems);
+                setSearchKey(searchKey);
 
-            const initHeart = noticeArray.map((notices) => {
-                return false;
+                if(searchKey.length != tmp && tmp != 0 ) {
+                    setTmp(searchKey.length);
+                }
             })
-            //console.log(searchNotices);
-            setSearchNotices(searchNotices);
-            setSearchItems(searchItems);
-            setHeart(initHeart);
-            setSearchKey(searchKey);
-
-
-        })
-    }, [])
-
-    const moveDetail = async(key) => {
+        }, 500);
+        return () => clearInterval(intervalDelete);
+      },[tmp])
+      const moveDetail = async(key) => {
         // console.log("clicked key? : "+ key);
         // console.log("어디 페이지로 이동? : " + searchKey[key]);
         // console.log("해당 페이지 제목? : " + searchNotices[key]);
@@ -105,51 +114,36 @@ const Search2 = ({ navigation }) => {
         )
         navigation.navigate('Details');
     }
-    
+    // notices
     ///// fav 
-    const addFav = async(key) => {
-
-        // displayFav(key, favorite);
-        let tmp = 0;
-        console.log("clicked key=> "+key);
-        // setId(key);
-
-        console.log( "userId: " + id + "product - option: "+ key);
-        // POST
-        await fetch('http://13.125.186.247:8000/favorscholar/', {
-            method: 'POST',
+    const deleteFav = async(key) => {
+        // getHeart();
+        console.log("current Key=>"+key);
+        console.log("username => "+id);
+        console.log("userId: " + id + " key: "+ key);
+        // await fetch(`http://13.125.186.247:8000/scholar/${key}`, {
+        //     method: 'DELETE',
+        await fetch(`http://13.125.186.247:8000/scholar/${key}`, {
+            method: 'DELETE', 
             headers: {
                 'Accept': 'application/json',
-                'Content-type': "application/json"
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                'user': id,
-                'product_option': key
-                // 'token': token,
-            })
-            })
-            .then(res => res.json())
-            .then(resData=> {
-                // $("#like AntDesign").css('color', 'red');
-            
-                console.log(resData);
-                // console.log("res.json()=>"+res.json());
-                console.log("resData Here!!=>"+JSON.stringify(resData));
-
-                AsyncStorage.setItem(
-                    // 'username', username
-                    'fav', JSON.stringify({
-                        // token: token,
-                        'favNotice': heart,
-                    })
-                )
-
-            })
+            body: null,
+        })
+        .then(response => {
+            return response.json( )
+        })
+        .then(data => 
+            // this is the data we get after putting our data, do whatever you want with this data
+            console.log(data) 
+        );
     
-            
     }
+    
     /////// fav 
 
+  
     const items = searchNotices;
     const list = searchItems;
 
@@ -172,7 +166,7 @@ const Search2 = ({ navigation }) => {
         alert('filter clicked');
     }
     const searchList = async () => {
-        navigation.navigate('Fav');
+        alert('filter clicked');
     }
 
     const onChangeText = (payload) => {
@@ -183,16 +177,10 @@ const Search2 = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <View style={styles.filter}>
-                    <TouchableOpacity 
-                        style={styles.dateBox}>
-
-                        <Text style={styles.dateBoxText}>마감 장학 가리기</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.filterBox} onPress={()=> navigation.navigate('Bert')}>
-                        <Text style={styles.filterBoxText}>지원 가능 장학만 보기</Text>
-                    </TouchableOpacity>
-                </View>
+                <Text style={styles.title}>내 관심장학</Text>
+                {/* <TouchableOpacity onPress={showFilter}>          
+                    <Text style={styles.filter}>Filter</Text>
+                </TouchableOpacity> */}
             </View>
             <View style={styles.form}>
                 <View style={styles.searchBar}>
@@ -203,56 +191,62 @@ const Search2 = ({ navigation }) => {
                             returnKeyType = "done"
                             value={text}
                         />
-                </View>
+                    <TouchableOpacity onPress={searchList}>          
+                        <Text style={styles.searchBtn}>Search</Text>
+                    </TouchableOpacity>
+                    </View>
             </View>
-
-
             <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollContent}>
-                {
+            {
+                Object.keys(notices) != "" ? 
                 Object.keys(notices).map(key => 
-                    text !== "" ? 
-                        notices[key].title.includes(text) ? 
-                        <TouchableOpacity style = {styles.content} key={key} onPress={()=> moveDetail(key)}>
+                    (text !== "" )? 
+                            notices[key].title.includes(text) ? 
+                            <TouchableOpacity style = {styles.content} key={key} onPress={()=>moveDetail(key)}>
+                                <View style={styles.box}>
+                                    <Text style={styles.dDay}>
+                                        D-2
+                                    </Text>
+                                    <Text style = {styles.deparmentInfo} >{notices[key].department}</Text>
+                                    <Pressable style={styles.favBtn} id = "like" onPress={()=>deleteFav(key)}><AntDesign name="heart" size={20} color="grey" /></Pressable>
+                                </View>
+                                
+                                <Text style = {styles.scholarTitle} >{notices[key].title}</Text>
+                                <Text style = {styles.dateInfo} >{notices[key].date}</Text>                
+                                
+                            </TouchableOpacity>
+                            : null
+                        
+                    // : (favorite[key] == "true")?
+                    // :( heart[key] == "true") ?
+                    :   <TouchableOpacity style = {styles.content} key={key} onPress={()=>moveDetail(key)}>
+                            {/* <Pressable onPress={()=>addFav(key)} style={{padding:5}}>
+                                {heart[key]?<Icon name="heart" size={20} color={'red'}></Icon>:<Icon name="heart" size={20} color={'white'}></Icon>}
+                            </Pressable> */}
                             <View style={styles.box}>
                                 <Text style={styles.dDay}>
                                     D-2
                                 </Text>
                                 <Text style = {styles.departmentInfo} >{notices[key].department}</Text>
-                                <Pressable style={styles.favBtn} id = "like" onPress={()=>addFav(searchKey[key])}><AntDesign name="heart" size={20} color="grey" /></Pressable>
-                            </View>
-                            <Text style = {styles.scholarTitle} >{notices[key].title}</Text>
-                            <Text style = {styles.dateInfo} >{notices[key].date}</Text>                
-                        </TouchableOpacity>
-                        : null
-
-
-                    : <TouchableOpacity style = {styles.content} key={key} onPress={()=> moveDetail(key)}>
-                        {/* <Pressable onPress={()=>addFav(key)} style={{padding:5}}>
-                            {heart[key]?<Icon name="heart" size={20} color={'red'}></Icon>:<Icon name="heart" size={20} color={'white'}></Icon>}
-                        </Pressable> */}
-                        <View style={styles.box} >
-                            <Text style={styles.dDay}>
-                                D-2
-                            </Text>
-                            <Text style = {styles.departmentInfo} >{notices[key].department}</Text>
-                            {/* 관심장학 버튼 */}
-                            <TouchableOpacity
-                                key={key}
-                                onPress={()=>addFav(searchKey[key])}
-                                style={styles.favBtn}
+                                <TouchableOpacity
+                                    key={key}
+                                    onPress={()=>deleteFav(searchKey[key])}
+                                    style={styles.favBtn}
                                 >
                                 {heart[key]?
                                 <Icon name="hearto" size={20} color={'#3D3D3D'}></Icon>
                                 :<Icon name="heart" size={20} color={'#595959'}></Icon>
                                 }
                             </TouchableOpacity>
-                        </View>
-                        
-                        <Text style = {styles.scholarTitle} >{notices[key].title}</Text>
-                        <Text style = {styles.dateInfo} >{notices[key].date}</Text>                
-
-                    </TouchableOpacity>
+                            </View>
+                                <Text style = {styles.scholarTitle} >{notices[key].title}</Text>
+                                <Text style = {styles.dateInfo} >{notices[key].date}</Text>                
+                        </TouchableOpacity>
+                            
                     )
+                : <View >
+                    <Text style = {styles.emptyText}> {"관심 장학이 없습니다."}</Text>
+                </View>
                 }
             </ScrollView>
         </View>
@@ -267,45 +261,10 @@ const styles = StyleSheet.create({
     },
     header: {
         paddingVertical: 10,
-        flexDirection:'row'
     },
     title: {
         fontSize: 20,
         fontWeight: '600',
-    },
-    filter:{
-        flexDirection:'row',
-        width:'85%',
-    },
-    dateBox:{
-        flex:1,
-        width:150,
-        borderColor:'#3A7525',
-        borderWidth:2,
-        marginRight:5,
-        borderRadius:10,
-        height:30,
-    },
-    dateBoxText:{
-        textAlign:'center',
-        fontWeight:'bold',
-        paddingTop:3
-    },
-    filterBox:{
-        flex:1,
-        width:130,
-        textAlign:'center',
-        borderColor:'#3A7525',
-        borderWidth:2,
-        marginLeft:5,
-        borderRadius:10,
-        height:30,
-
-    },
-    filterBoxText:{
-        textAlign:'center',
-        fontWeight:'bold',
-        paddingTop:3
     },
 
     form: {
@@ -328,7 +287,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     input: {
-        width: '90%',
+        width: '75%',
         fontSize: 17,
         marginVertical: 10,
         paddingVertical: 5,
@@ -408,11 +367,10 @@ const styles = StyleSheet.create({
         textAlign:'right',
         marginRight:10,
         color:'grey',
-        marginTop:3,
         marginBottom:5
     }
 
 
 })
 
-export default Search2;
+export default Fav2;

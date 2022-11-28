@@ -1,51 +1,126 @@
 import React from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 import { View, StyleSheet, Text, TextInput, TouchableOpacity,ScrollView, ActivityIndicator } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-
 
 
 const Details = ({ navigation }) => {
 
     const [text, setText] = useState("");
     const [notices, setNotices] =  useState([{}]);
+    const [username, setUsername] = useState("");
+    const [noticeId, setNoticeId] = useState("");
+    const [id, setId] = useState("");
+    const [income, setIncome] = useState("");
+    const [lastgpa, setLastgpa] = useState("");
+    const [fullgpa, setFullgpa] = useState("");
+    const [residence, setResidence] = useState("");
+    const [departments, setDepartments] = useState("");
+    const [semester, setSemester] = useState("");
+    const [con_incoome, setCon_income] = useState("");
+
+    // setTitle(JSON.parse(clickedValue).title);
+    //     setAge(JSON.parse(clickedValue).age);
+    //     setBScore(JSON.parse(clickedValue).bef_score);
+    //     setTScore(JSON.parse(clickedValue).total_score);
+    //     setIncome(JSON.parse(clickedValue).income),
+    //     setMajor(JSON.parse(clickedValue).major),
+    //     setWhere(JSON.parse(clickedValue).where)
+    const [title, setTitle] = useState("");
+    const [age, setAge] = useState("");
+    const [bscore, setBScore] = useState("");
+    const [tscore, setTScore] = useState("");
+    const [money, setMoney] = useState("");
+    const [major, setMajor] = useState("");
+    const [where, setWhere] = useState("");
+ 
+
+    const getData = async () => {
+        const value = await AsyncStorage.getItem('userData');
+        if (value !== null) {
+            console.log(JSON.parse(value).username);
+            console.log(JSON.parse(value).id);
+            // console.log(JSON.parse(value).token);
+
+        setUsername(JSON.parse(value).username);
+        setId(JSON.parse(value).id);
+        setIncome(JSON.parse(value).income);
+        setLastgpa(JSON.parse(value).lastgpa);
+        setFullgpa(JSON.parse(value).fullgpa);
+        setResidence(JSON.parse(value).residence);
+        setDepartments(JSON.parse(value).departments);
+        setSemester(JSON.parse(value).semester);
+        // setToken(JSON.parse(value).token);
+        // console.log(value.parse.username);
+        }
+
+        const clickedValue = await AsyncStorage.getItem('clickedItem');
+        if (clickedValue !== null) {
+            console.log(JSON.parse(clickedValue).title);
+            console.log(JSON.parse(clickedValue).age);
+        }
+
+        setTitle(JSON.parse(clickedValue).title);
+        setAge(JSON.parse(clickedValue).age);
+        setBScore(JSON.parse(clickedValue).bef_score);
+        setTScore(JSON.parse(clickedValue).total_score);
+        setMoney(JSON.parse(clickedValue).income),
+        setMajor(JSON.parse(clickedValue).major),
+        setWhere(JSON.parse(clickedValue).where)
+        
+    }
 
     // 로딩
     useEffect(() => {
-        getNotices();
+        fetch(`http://13.125.186.247:8000/api/bert/`)
+        .then((res)=>res.json())
+        .then((resData)=> {
+            getData();
+            // setNotices(resData);
+            // // console.log("BERT!!!!!!"+JSON.stringify(resData));
+            // // console.log("HERE NOTICES!!!!!!! : "+ notices );
+
+            // const searchNotices = resData.map((notices) => {
+            //     // console.log("notices title : " + notices.title);
+            //     return notices.title;
+            // })
+            // const searchItems = resData.map((notices) => {
+            //     // console.log("NOTICE&&&&&&& + " + JSON.stringify(notices));
+            //     return notices;
+            // })
+            // const searchKey = resData.map((notices) => {
+            //     // console.log("notices title : " + notices.id);
+            //     return notices.id;
+            // })
+            // const goalSemester = resData.map((notices) => {
+            //     // console.log("notices semester : " + notices.con_age);
+            //     return;
+            // })
+            // //console.log(searchNotices);
+            // setSearchNotices(searchNotices);
+            // setSearchItems(searchItems);
+            // setSearchKey(searchKey);
+
+            // // setGoalSemester(goalSemester);
+            // // console.log("TITLE!!!! => "+ searchNotices);
+            // // console.log("WHOLE NOTICE!!!! => "+ JSON.stringify(searchItems));
+            // // console.log("KEY!!!! => "+ searchKey);
+        })
     }, [])
 
-    const getNotices = async() => {
-        const response = await fetch(
-            `http://13.125.186.247:8000/api/scholar`
-        );
-        const json = await response.json();
-        
-        setNotices(json);
 
-    }
 
-    const showFilter = async () => {
-        alert('filter clicked');
-    }
-    const searchList = async () => {
-        alert('filter clicked');
-    }
-
-    const onChangeText = (payload) => setText(payload);
-
-    
     return (
         <View style={styles.container}>
-            
             <View style={styles.header}>
-                <Text style={styles.title}>장학 제목 예시</Text>
+                <Text style={styles.title}></Text>
             </View>
             <View style={styles.box}>
                 {/* 상단 제목 */}
                 <View style={styles.center}>
                     <Text style={styles.check}>
-                        내 지원 자격 확인하기
+                        {title}
                     </Text>
                 </View>
                 {/* 비교 표 */}
@@ -63,15 +138,14 @@ const Details = ({ navigation }) => {
                         </Text>
                     </View>
 
-
+                    
                     {/* 현재학기 */}
                     <View style={styles.comparison}>
-
                         <Text style={styles.scholar}>
-                            현재 학기
+                            {age}
                         </Text>
                         <Text style={styles.myInfo}>
-                            내 설정
+                            {semester}
                         </Text>
                         <Text style={styles.iconCheck}>
                             <Ionicons name='md-checkmark-circle' size={32} color="green"/>
@@ -81,10 +155,10 @@ const Details = ({ navigation }) => {
                     {/* 소득 분위 */}
                     <View style={styles.comparison}>
                         <Text style={styles.scholar}>
-                            소득 분위
+                            {money}
                         </Text>
                         <Text style={styles.myInfo}>
-                            내 설정
+                            {income}
                         </Text>
                         <Text style={styles.iconCheck}>
                             가능
@@ -94,10 +168,10 @@ const Details = ({ navigation }) => {
                     {/* 평균 평점 */}
                     <View style={styles.comparison}>
                         <Text style={styles.scholar}>
-                            평균 평점
+                            {tscore}
                         </Text>
                         <Text style={styles.myInfo}>
-                            내 설정
+                            {fullgpa}
                         </Text>
                         <Text style={styles.iconCheck}>
                             가능
@@ -107,10 +181,10 @@ const Details = ({ navigation }) => {
                     {/* 직전학기 평점 */}
                     <View style={styles.comparison}>
                         <Text style={styles.scholar}>
-                            직전학기 평점
+                            {bscore}
                         </Text>
                         <Text style={styles.myInfo}>
-                            내 설정
+                            {lastgpa}
                         </Text>
                         <Text style={styles.iconCheck}>
                             가능
@@ -120,10 +194,10 @@ const Details = ({ navigation }) => {
                     {/* 등본상 거주지 */}
                     <View style={styles.comparison}>
                         <Text style={styles.scholar}>
-                            등본상 거주지
+                            {where}
                         </Text>
                         <Text style={styles.myInfo}>
-                            내 설정
+                            {residence}
                         </Text>
                         <Text style={styles.iconCheck}>
                             가능
@@ -133,10 +207,10 @@ const Details = ({ navigation }) => {
                     {/* 소속학과 */}
                     <View style={styles.comparison}>
                         <Text style={styles.scholar}>
-                            소속학과
+                            {major}
                         </Text>
                         <Text style={styles.myInfo}>
-                            내 설정
+                            {departments}
                         </Text>
                         <Text style={styles.iconCheck}>
                             가능

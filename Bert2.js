@@ -20,14 +20,12 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
-
-let before = 0;
-/////////
-const Search2 = ({ navigation }) => {
-
+//////////
+const Bert = ({ navigation }) => {
+   
     // const {addFav} = useContext(LikeContext);
     const [favorite, setFavorite] = useState();
-    const [tmp, setTmp] = useState("");
+
     const [heart, setHeart] = useState([]);
     const [favNotice, setFavNotice] = useState([]);
 
@@ -37,54 +35,74 @@ const Search2 = ({ navigation }) => {
     const [searchNotices, setSearchNotices] = useState([]);
     // const [contents, setContents] = useState({});
     const [searchItems, setSearchItems] = useState([]);
+    const [searchKey, setSearchKey] = useState([]);
     const [username, setUsername] = useState("");
     const [noticeId, setNoticeId] = useState("");
     const [id, setId] = useState("");
-    const [searchKey, setSearchKey] = useState([]);
+    // const [token, setToken] = useState("");
+    const [tmp, setTmp] = useState("");
 
     const getData = async () => {
         const value = await AsyncStorage.getItem('userData');
-        if (value !== null) {
-            console.log(JSON.parse(value).username);
-            console.log(JSON.parse(value).id)
-            // console.log(JSON.parse(value).token);
         setUsername(JSON.parse(value).username);
         setId(JSON.parse(value).id);
-        }
     }
+    // getData();
+
+    const [state, setState] = useState({ data: null, error: false, loading: true })
 
     useEffect(() => {
-        fetch(`http://13.125.186.247:8000/api/bert`)
-        .then((res)=>res.json())
-        .then((noticeArray)=> {
-            getData();
-            setNotices(noticeArray);
-            // console.log(noticeArray)
-            const searchNotices = noticeArray.map((notices) => {
-                return notices.title;
-            })
-            const searchItems = noticeArray.map((notices) => {
-                return notices;
-            })
-            const searchKey = noticeArray.map((notices) => {
-                // console.log("!!!!!!!!!!!!!!!search key id ㅊㅜㄹ려ㄱ"+notices.id);
-                return notices.id;
-            })
+        setState(state => ({ data: state.data, error: false, loading: true }))
+        const intervalBert = setInterval(()=> {
+            fetch(`http://13.125.186.247:8000/api/bertcmp`)
+            .then((res)=>res.json())
+            .then((noticeArray)=> {
+                getData();
+                setNotices(noticeArray.data);
+    
+                // console.log("여기봐!!!!!!!!"+JSON.stringify(noticeArray));
+    
+                const searchNotices = noticeArray.data.map((notices) => {
+                    return notices.title;
+                })
+                const searchItems = noticeArray.data.map((notices) => {
+                    return notices;
+                })
+                const searchKey = noticeArray.data.map((notices) => {
+                    // console.log("Key?????????????//=> "+notices.id);
+                    return notices.id;
+                })
+                //console.log(searchNotices);
+                setTmp(searchKey.length);
+                setSearchNotices(searchNotices);
+                setSearchItems(searchItems);
+                setSearchKey(searchKey);
+                
+                if(searchKey.length != tmp && tmp != 0 ) {
+                    console.log(searchKey.length+" vs "+ tmp + "개수가 변경됨");
+                    // tmp++;
+                    // PUSH NOTIFICATION
+                    Notifications.scheduleNotificationAsync({
+                        
+                        content: {
+                        title: "!!!!!NEW 맞춤장학공고!",
+                        body: '맞춤 장학공고가 새롭게 업데이트 되었습니다. 확인해보세요!',
 
-            const initHeart = noticeArray.map((notices) => {
-                return false;
+                        },
+                        trigger: {
+                            seconds: 1,
+                            // repeats: false //onPress가 클릭이 되면 60초 뒤에 알람이 발생합니다.
+                        },
+                        // date: new Date(Date.now() + 2 * 1000),
+                    });
+                    setTmp(searchKey.length);
+                    }
             })
-            //console.log(searchNotices);
-            setSearchNotices(searchNotices);
-            setSearchItems(searchItems);
-            setHeart(initHeart);
-            setSearchKey(searchKey);
+        },1000)
+        return () => clearInterval(intervalBert);
+    }, [tmp])
 
-
-        })
-    }, [])
-
-    const moveDetail = async(key) => {
+      const moveDetail = async(key) => {
         // console.log("clicked key? : "+ key);
         // console.log("어디 페이지로 이동? : " + searchKey[key]);
         // console.log("해당 페이지 제목? : " + searchNotices[key]);
@@ -105,6 +123,7 @@ const Search2 = ({ navigation }) => {
         )
         navigation.navigate('Details');
     }
+
     
     ///// fav 
     const addFav = async(key) => {
@@ -130,12 +149,7 @@ const Search2 = ({ navigation }) => {
             })
             .then(res => res.json())
             .then(resData=> {
-                // $("#like AntDesign").css('color', 'red');
-            
                 console.log(resData);
-                // console.log("res.json()=>"+res.json());
-                console.log("resData Here!!=>"+JSON.stringify(resData));
-
                 AsyncStorage.setItem(
                     // 'username', username
                     'fav', JSON.stringify({
@@ -143,13 +157,24 @@ const Search2 = ({ navigation }) => {
                         'favNotice': heart,
                     })
                 )
-
+                // PUSH NOTIFICATION
+                Notifications.scheduleNotificationAsync({
+                    content: {
+                      title: "NEW 관심장학!",
+                      body: '관심장학이 새롭게 업데이트 되었습니다. 확인해보세요!',
+                    },
+                    trigger: {
+                      seconds: 3, //onPress가 클릭이 되면 60초 뒤에 알람이 발생합니다.
+                    },
+                  });
+                
             })
     
             
     }
     /////// fav 
 
+  
     const items = searchNotices;
     const list = searchItems;
 
@@ -157,15 +182,6 @@ const Search2 = ({ navigation }) => {
         return item.includes(text);
     })
 
-    const renderItem = notices.map((notices) => {
-        return (
-            <View>
-                <Text>department : {notices.department}</Text>
-                <Text>title : {notices.title}</Text>
-                <Text>date : {notices.date}</Text>
-            </View>
-        )
-    })
 
 
     const showFilter = async () => {
@@ -183,16 +199,10 @@ const Search2 = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <View style={styles.filter}>
-                    <TouchableOpacity 
-                        style={styles.dateBox}>
-
-                        <Text style={styles.dateBoxText}>마감 장학 가리기</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.filterBox} onPress={()=> navigation.navigate('Bert')}>
-                        <Text style={styles.filterBoxText}>지원 가능 장학만 보기</Text>
-                    </TouchableOpacity>
-                </View>
+                <Text style={styles.title}>장학공고 검색</Text>
+                {/* <TouchableOpacity onPress={showFilter}>          
+                    <Text style={styles.filter}>Filter</Text>
+                </TouchableOpacity> */}
             </View>
             <View style={styles.form}>
                 <View style={styles.searchBar}>
@@ -203,10 +213,11 @@ const Search2 = ({ navigation }) => {
                             returnKeyType = "done"
                             value={text}
                         />
-                </View>
+                    <TouchableOpacity onPress={searchList}>          
+                        <Text style={styles.searchBtn}>검색 🔍</Text>
+                    </TouchableOpacity>
+                    </View>
             </View>
-
-
             <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollContent}>
                 {
                 Object.keys(notices).map(key => 
@@ -255,6 +266,8 @@ const Search2 = ({ navigation }) => {
                     )
                 }
             </ScrollView>
+ 
+   
         </View>
     )
 }
@@ -415,4 +428,4 @@ const styles = StyleSheet.create({
 
 })
 
-export default Search2;
+export default Bert;
